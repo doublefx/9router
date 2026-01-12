@@ -1,5 +1,6 @@
 import { handleChat } from "@/sse/handlers/chat.js";
 import { initTranslators } from "open-sse/translator/index.js";
+import { createOptionsHandler, addCorsHeaders } from "@/lib/cors";
 
 let initialized = false;
 
@@ -11,15 +12,7 @@ async function ensureInitialized() {
   }
 }
 
-export async function OPTIONS() {
-  return new Response(null, {
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "*"
-    }
-  });
-}
+export const OPTIONS = createOptionsHandler("POST, OPTIONS");
 
 /**
  * POST /v1/responses - OpenAI Responses API format
@@ -27,5 +20,6 @@ export async function OPTIONS() {
  */
 export async function POST(request) {
   await ensureInitialized();
-  return await handleChat(request);
+  const response = await handleChat(request);
+  return addCorsHeaders(response, request);
 }

@@ -1,15 +1,9 @@
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "*"
-};
+import { createOptionsHandler, addCorsHeaders } from "@/lib/cors";
 
 /**
  * Handle CORS preflight
  */
-export async function OPTIONS() {
-  return new Response(null, { headers: CORS_HEADERS });
-}
+export const OPTIONS = createOptionsHandler("POST, OPTIONS");
 
 /**
  * POST /v1/messages/count_tokens - Mock token count response
@@ -19,10 +13,11 @@ export async function POST(request) {
   try {
     body = await request.json();
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
+    const errorResponse = new Response(JSON.stringify({ error: "Invalid JSON body" }), {
       status: 400,
-      headers: { "Content-Type": "application/json", ...CORS_HEADERS }
+      headers: { "Content-Type": "application/json" }
     });
+    return addCorsHeaders(errorResponse, request);
   }
 
   // Estimate token count based on content length
@@ -43,10 +38,12 @@ export async function POST(request) {
   // Rough estimate: ~4 chars per token
   const inputTokens = Math.ceil(totalChars / 4);
 
-  return new Response(JSON.stringify({
+  const response = new Response(JSON.stringify({
     input_tokens: inputTokens
   }), {
-    headers: { "Content-Type": "application/json", ...CORS_HEADERS }
+    headers: { "Content-Type": "application/json" }
   });
+
+  return addCorsHeaders(response, request);
 }
 
