@@ -32,10 +32,16 @@ export async function POST(request) {
       const cookieStore = await cookies();
       cookieStore.set("auth_token", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        secure: true,  // Always use secure flag
+        sameSite: "strict",  // Stricter CSRF protection
         path: "/",
+        maxAge: 60 * 60 * 24, // 24 hours
       });
+
+      // Log warning if not using HTTPS in production
+      if (!request.url.startsWith('https://') && process.env.NODE_ENV === 'production') {
+        console.warn('⚠️  WARNING: Authentication over HTTP detected in production!');
+      }
 
       return NextResponse.json({ success: true });
     }
