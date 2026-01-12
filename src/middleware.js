@@ -20,6 +20,12 @@ if (process.env.JWT_SECRET.length < 32) {
 
 const SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
+// Warn if HTTPS not configured in production
+if (process.env.NODE_ENV === 'production' && !process.env.HTTPS_ENABLED) {
+  console.warn('⚠️  WARNING: HTTPS should be enabled in production');
+  console.warn('   Secure cookies will not work over HTTP');
+}
+
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
