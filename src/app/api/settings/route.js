@@ -1,8 +1,25 @@
 import { NextResponse } from "next/server";
 import { getSettings, updateSettings } from "@/lib/localDb";
 import bcrypt from "bcryptjs";
+import { strictLimiter } from "@/lib/rateLimit";
 
-export async function GET() {
+export async function GET(request) {
+  // Apply rate limiting
+  const rateCheck = strictLimiter(request);
+  if (rateCheck.limited) {
+    return NextResponse.json(
+      { error: rateCheck.message },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': rateCheck.retryAfter.toString(),
+          'X-RateLimit-Limit': '10',
+          'X-RateLimit-Remaining': '0'
+        }
+      }
+    );
+  }
+
   try {
     const settings = await getSettings();
     // Don't return the password hash to the client
@@ -15,6 +32,22 @@ export async function GET() {
 }
 
 export async function PATCH(request) {
+  // Apply rate limiting
+  const rateCheck = strictLimiter(request);
+  if (rateCheck.limited) {
+    return NextResponse.json(
+      { error: rateCheck.message },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': rateCheck.retryAfter.toString(),
+          'X-RateLimit-Limit': '10',
+          'X-RateLimit-Remaining': '0'
+        }
+      }
+    );
+  }
+
   try {
     const body = await request.json();
 
