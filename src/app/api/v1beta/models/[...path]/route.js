@@ -1,5 +1,6 @@
 import { handleChat } from "@/sse/handlers/chat.js";
 import { initTranslators } from "open-sse/translator/index.js";
+import { createOptionsHandler, addCorsHeaders } from "@/lib/cors";
 
 let initialized = false;
 
@@ -14,18 +15,7 @@ async function ensureInitialized() {
   }
 }
 
-/**
- * Handle CORS preflight
- */
-export async function OPTIONS() {
-  return new Response(null, {
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "*"
-    }
-  });
-}
+export const OPTIONS = createOptionsHandler("POST, OPTIONS");
 
 /**
  * POST /v1beta/models/{model}:generateContent - Gemini compatible endpoint
@@ -63,13 +53,15 @@ export async function POST(request, { params }) {
       body: JSON.stringify(convertedBody),
     });
 
-    return await handleChat(newRequest);
+    const response = await handleChat(newRequest);
+    return addCorsHeaders(response, request);
   } catch (error) {
     console.log("Error handling Gemini request:", error);
-    return Response.json(
+    const errorResponse = Response.json(
       { error: { message: error.message, code: 500 } },
       { status: 500 }
     );
+    return addCorsHeaders(errorResponse, request);
   }
 }
 

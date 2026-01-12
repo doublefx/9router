@@ -1,20 +1,14 @@
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
-  "Access-Control-Allow-Headers": "*"
-};
+import { createOptionsHandler, addCorsHeaders } from "@/lib/cors";
 
 /**
  * Handle CORS preflight
  */
-export async function OPTIONS() {
-  return new Response(null, { headers: CORS_HEADERS });
-}
+export const OPTIONS = createOptionsHandler("GET, OPTIONS");
 
 /**
  * GET /v1 - Return models list (OpenAI compatible)
  */
-export async function GET() {
+export async function GET(request) {
   const models = [
     { id: "claude-sonnet-4-20250514", object: "model", owned_by: "anthropic" },
     { id: "claude-3-5-sonnet-20241022", object: "model", owned_by: "anthropic" },
@@ -22,11 +16,13 @@ export async function GET() {
     { id: "gemini-2.5-pro", object: "model", owned_by: "google" }
   ];
 
-  return new Response(JSON.stringify({
+  const response = new Response(JSON.stringify({
     object: "list",
     data: models
   }), {
-    headers: { "Content-Type": "application/json", ...CORS_HEADERS }
+    headers: { "Content-Type": "application/json" }
   });
+
+  return addCorsHeaders(response, request);
 }
 
