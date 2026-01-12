@@ -28,8 +28,8 @@ export const CODEX_CONFIG = {
 
 // Gemini (Google) OAuth Configuration (Standard OAuth2)
 export const GEMINI_CONFIG = {
-  clientId: "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
-  clientSecret: "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",
+  clientId: process.env.GEMINI_CLIENT_ID || "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
+  clientSecret: process.env.GEMINI_CLIENT_SECRET,
   authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
   tokenUrl: "https://oauth2.googleapis.com/token",
   userInfoUrl: "https://www.googleapis.com/oauth2/v1/userinfo",
@@ -38,7 +38,7 @@ export const GEMINI_CONFIG = {
     "https://www.googleapis.com/auth/userinfo.email",
     "https://www.googleapis.com/auth/userinfo.profile",
   ],
-};
+};;
 
 // Qwen OAuth Configuration (Device Code Flow with PKCE)
 export const QWEN_CONFIG = {
@@ -51,8 +51,8 @@ export const QWEN_CONFIG = {
 
 // iFlow OAuth Configuration (Authorization Code)
 export const IFLOW_CONFIG = {
-  clientId: "10009311001",
-  clientSecret: "4Z3YjXycVsQvyGF1etiNlIBB4RsqSDtW",
+  clientId: process.env.IFLOW_CLIENT_ID || "10009311001",
+  clientSecret: process.env.IFLOW_CLIENT_SECRET,
   authorizeUrl: "https://iflow.cn/oauth",
   tokenUrl: "https://iflow.cn/oauth/token",
   userInfoUrl: "https://iflow.cn/api/oauth/getUserInfo",
@@ -60,12 +60,12 @@ export const IFLOW_CONFIG = {
     loginMethod: "phone",
     type: "phone",
   },
-};
+};;
 
 // Antigravity OAuth Configuration (Standard OAuth2 with Google)
 export const ANTIGRAVITY_CONFIG = {
-  clientId: "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com",
-  clientSecret: "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",
+  clientId: process.env.ANTIGRAVITY_CLIENT_ID || "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com",
+  clientSecret: process.env.ANTIGRAVITY_CLIENT_SECRET,
   authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
   tokenUrl: "https://oauth2.googleapis.com/token",
   userInfoUrl: "https://www.googleapis.com/oauth2/v1/userinfo",
@@ -84,7 +84,7 @@ export const ANTIGRAVITY_CONFIG = {
   loadCodeAssistUserAgent: "google-api-nodejs-client/9.15.1",
   loadCodeAssistApiClient: "google-cloud-sdk vscode_cloudshelleditor/0.1",
   loadCodeAssistClientMetadata: `{"ideType":"IDE_UNSPECIFIED","platform":"PLATFORM_UNSPECIFIED","pluginType":"GEMINI"}`,
-};
+};;
 
 // OpenAI OAuth Configuration (Authorization Code Flow with PKCE)
 export const OPENAI_CONFIG = {
