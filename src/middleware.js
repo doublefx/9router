@@ -1,9 +1,24 @@
 import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
-const SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "9router-default-secret-change-me"
-);
+// Validate JWT_SECRET environment variable
+if (!process.env.JWT_SECRET) {
+  throw new Error(
+    "FATAL: JWT_SECRET environment variable is required.\n" +
+    "Generate a strong secret with: openssl rand -base64 32\n" +
+    "Then add to .env: JWT_SECRET=<generated_secret>"
+  );
+}
+
+// Validate secret strength (minimum 32 characters)
+if (process.env.JWT_SECRET.length < 32) {
+  throw new Error(
+    "FATAL: JWT_SECRET must be at least 32 characters long.\n" +
+    "Generate a strong secret with: openssl rand -base64 32"
+  );
+}
+
+const SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
