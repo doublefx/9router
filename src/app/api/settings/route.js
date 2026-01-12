@@ -33,10 +33,14 @@ export async function PATCH(request) {
           return NextResponse.json({ error: "Invalid current password" }, { status: 401 });
         }
       } else {
-        // First time setting password, check if it matches default 123456
-        if (body.currentPassword !== "123456") {
-           return NextResponse.json({ error: "Invalid current password" }, { status: 401 });
-        }
+        // No password configured yet - this should go through setup wizard, not settings
+        return NextResponse.json(
+          {
+            error: "No password configured. Use setup wizard to set initial password.",
+            requiresSetup: true
+          },
+          { status: 401 }
+        );
       }
 
       const salt = await bcrypt.genSalt(10);
