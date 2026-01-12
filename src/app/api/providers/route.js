@@ -3,9 +3,26 @@ import { getProviderConnections, createProviderConnection, isCloudEnabled } from
 import { APIKEY_PROVIDERS } from "@/shared/constants/config";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/app/api/sync/cloud/route";
+import { strictLimiter } from "@/lib/rateLimit";
 
 // GET /api/providers - List all connections
-export async function GET() {
+export async function GET(request) {
+  // Apply rate limiting
+  const rateCheck = strictLimiter(request);
+  if (rateCheck.limited) {
+    return NextResponse.json(
+      { error: rateCheck.message },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': rateCheck.retryAfter.toString(),
+          'X-RateLimit-Limit': '10',
+          'X-RateLimit-Remaining': '0'
+        }
+      }
+    );
+  }
+
   try {
     const connections = await getProviderConnections();
     
@@ -27,6 +44,22 @@ export async function GET() {
 
 // POST /api/providers - Create new connection (API Key only, OAuth via separate flow)
 export async function POST(request) {
+  // Apply rate limiting
+  const rateCheck = strictLimiter(request);
+  if (rateCheck.limited) {
+    return NextResponse.json(
+      { error: rateCheck.message },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': rateCheck.retryAfter.toString(),
+          'X-RateLimit-Limit': '10',
+          'X-RateLimit-Remaining': '0'
+        }
+      }
+    );
+  }
+
   try {
     const body = await request.json();
     const { provider, apiKey, name, priority, globalPriority, defaultModel, testStatus } = body;

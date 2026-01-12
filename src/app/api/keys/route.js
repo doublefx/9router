@@ -2,9 +2,26 @@ import { NextResponse } from "next/server";
 import { getApiKeys, createApiKey, isCloudEnabled } from "@/lib/localDb";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/app/api/sync/cloud/route";
+import { strictLimiter } from "@/lib/rateLimit";
 
 // GET /api/keys - List API keys
-export async function GET() {
+export async function GET(request) {
+  // Apply rate limiting
+  const rateCheck = strictLimiter(request);
+  if (rateCheck.limited) {
+    return NextResponse.json(
+      { error: rateCheck.message },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': rateCheck.retryAfter.toString(),
+          'X-RateLimit-Limit': '10',
+          'X-RateLimit-Remaining': '0'
+        }
+      }
+    );
+  }
+
   try {
     const keys = await getApiKeys();
     return NextResponse.json({ keys });
@@ -16,6 +33,22 @@ export async function GET() {
 
 // POST /api/keys - Create new API key
 export async function POST(request) {
+  // Apply rate limiting
+  const rateCheck = strictLimiter(request);
+  if (rateCheck.limited) {
+    return NextResponse.json(
+      { error: rateCheck.message },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': rateCheck.retryAfter.toString(),
+          'X-RateLimit-Limit': '10',
+          'X-RateLimit-Remaining': '0'
+        }
+      }
+    );
+  }
+
   try {
     const body = await request.json();
     const { name } = body;
