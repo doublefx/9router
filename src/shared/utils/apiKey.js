@@ -1,6 +1,23 @@
 import crypto from "crypto";
 
-const API_KEY_SECRET = process.env.API_KEY_SECRET || "endpoint-proxy-api-key-secret";
+// Validate API_KEY_SECRET environment variable
+if (!process.env.API_KEY_SECRET) {
+  throw new Error(
+    "FATAL: API_KEY_SECRET environment variable is required.\n" +
+    "Generate a strong secret with: openssl rand -base64 32\n" +
+    "Then add to .env: API_KEY_SECRET=<generated_secret>"
+  );
+}
+
+// Validate secret strength (minimum 32 characters)
+if (process.env.API_KEY_SECRET.length < 32) {
+  throw new Error(
+    "FATAL: API_KEY_SECRET must be at least 32 characters long.\n" +
+    "Generate a strong secret with: openssl rand -base64 32"
+  );
+}
+
+const API_KEY_SECRET = process.env.API_KEY_SECRET;
 
 /**
  * Generate 6-char random keyId
