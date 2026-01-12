@@ -38,6 +38,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# machine ID salt file
+.9router/machine-salt
+
 # vercel
 .vercel
 
