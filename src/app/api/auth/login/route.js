@@ -28,15 +28,21 @@ export async function POST(request) {
     const { password } = await request.json();
     const settings = await getSettings();
 
-    // Default password is '123456' if not set
     const storedHash = settings.password;
 
-    let isValid = false;
+    // Reject login if no password has been configured yet
     if (!storedHash) {
-      isValid = password === "123456";
-    } else {
-      isValid = await bcrypt.compare(password, storedHash);
+      return NextResponse.json(
+        {
+          error: "No password configured. Please run the setup wizard first.",
+          requiresSetup: true
+        },
+        { status: 401 }
+      );
     }
+
+    // Verify password using bcrypt
+    const isValid = await bcrypt.compare(password, storedHash);
 
     if (isValid) {
       const token = await new SignJWT({ authenticated: true })
