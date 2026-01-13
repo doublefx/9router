@@ -1,19 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, Button, Input } from "@/shared/components";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Check for setup success message
+  useEffect(() => {
+    if (searchParams.get("setup") === "success") {
+      setSuccess("Password configured successfully! You can now login.");
+    }
+  }, [searchParams]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setSuccess("");
 
     try {
       const res = await fetch("/api/auth/login", {
@@ -27,6 +37,13 @@ export default function LoginPage() {
         router.refresh();
       } else {
         const data = await res.json();
+
+        // Check if setup is required
+        if (data.requiresSetup) {
+          router.push("/setup");
+          return;
+        }
+
         setError(data.error || "Invalid password");
       }
     } catch (err) {
@@ -57,6 +74,7 @@ export default function LoginPage() {
                 autoFocus
               />
               {error && <p className="text-xs text-red-500">{error}</p>}
+              {success && <p className="text-xs text-green-500">{success}</p>}
             </div>
 
             <Button
