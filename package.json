@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:codex": "next dev -p 1455",
     "build": "next build",
     "start": "next start",
     "test": "vitest",
