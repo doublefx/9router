@@ -17,9 +17,8 @@ describe('Fix 5: API_KEY_SECRET Requirement', () => {
     it('should fail when API key generation is attempted', async () => {
       const env = {
         JWT_SECRET: 'a'.repeat(32),
-        API_KEY_SECRET: undefined
+        API_KEY_SECRET: undefined  // Will be deleted by startServer
       };
-      delete env.API_KEY_SECRET;
 
       server = await startServer(env);
 

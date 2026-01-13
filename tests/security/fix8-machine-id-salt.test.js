@@ -45,7 +45,7 @@ describe('Fix 8: Machine ID Salt', () => {
       server = await startServer({
         JWT_SECRET: 'a'.repeat(32),
         API_KEY_SECRET: 'b'.repeat(32),
-        // No MACHINE_ID_SALT env var
+        MACHINE_ID_SALT: undefined  // Will be deleted by startServer to test auto-generation
       });
 
       // Trigger salt generation by calling an endpoint that uses machine ID

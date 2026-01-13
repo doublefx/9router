@@ -17,11 +17,20 @@ export async function startServer(env = {}) {
     // Find available port (tries 3000 first, then finds next available)
     const port = await getPort({ port: [3000, 3001, 3002, 3003, 3004, 3005] });
 
+    // Merge env vars, explicitly handling undefined values (to delete them)
+    const mergedEnv = { ...process.env, ...env };
+
+    // Remove any env vars that are explicitly set to undefined
+    Object.keys(env).forEach(key => {
+      if (env[key] === undefined) {
+        delete mergedEnv[key];
+      }
+    });
+
     // Start server with specific port
     const serverProcess = spawn('npm', ['run', 'dev'], {
       env: {
-        ...process.env,
-        ...env,
+        ...mergedEnv,
         PORT: port.toString(),
         NEXT_MANUAL_SIG_HANDLE: 'true', // Required for proper signal handling
       },

@@ -23,8 +23,7 @@ describe('Fix 2: JWT_SECRET Requirement', () => {
 
   describe('Without JWT_SECRET', () => {
     it('should fail to start without JWT_SECRET', async () => {
-      const env = { JWT_SECRET: undefined };
-      delete env.JWT_SECRET;
+      const env = { JWT_SECRET: undefined };  // Will be deleted by startServer
 
       // Server should fail to start without JWT_SECRET
       let serverStarted = false;
