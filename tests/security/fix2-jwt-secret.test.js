@@ -100,14 +100,30 @@ describe('Fix 2: JWT_SECRET Requirement', () => {
 
   describe('With valid JWT_SECRET', () => {
     beforeAll(async () => {
+      // Clean state first
       await stopServer(server);
+      server = null;
+
+      // Add delay to ensure port is freed
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Generate valid 32+ character secret
       const validSecret = 'a'.repeat(32) + Math.random().toString(36);
-      server = await startServer({ JWT_SECRET: validSecret, API_KEY_SECRET: 'b'.repeat(32) });
+      try {
+        server = await startServer({ JWT_SECRET: validSecret, API_KEY_SECRET: 'b'.repeat(32) });
+        if (!server || !server.port) {
+          throw new Error('Server started but has no port');
+        }
+      } catch (error) {
+        console.error('Failed to start server in beforeAll:', error);
+        throw error;
+      }
     }, 120000); // 2 minute timeout
 
     it('should start successfully with valid JWT_SECRET', async () => {
+      if (!server) {
+        throw new Error('Server not initialized - beforeAll hook failed');
+      }
       const response = await apiRequest('/', {}, server.port);
 
       // Should redirect or return 200/307
