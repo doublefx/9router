@@ -10,7 +10,13 @@ describe('Fix 2: JWT_SECRET Requirement', () => {
   let server;
 
   // Cleanup after each test to ensure no servers are left running
+  // Skip cleanup for tests in "With valid JWT_SECRET" block (they share one server)
+  let skipCleanup = false;
   afterEach(async () => {
+    if (skipCleanup) {
+      skipCleanup = false;
+      return;
+    }
     if (server) {
       await stopServer(server);
       server = null;
@@ -120,7 +126,14 @@ describe('Fix 2: JWT_SECRET Requirement', () => {
       }
     }, 120000); // 2 minute timeout
 
+    // Clean up after all tests in this block
+    afterAll(async () => {
+      await stopServer(server);
+      server = null;
+    });
+
     it('should start successfully with valid JWT_SECRET', async () => {
+      skipCleanup = true; // Keep server running for next test
       if (!server) {
         throw new Error('Server not initialized - beforeAll hook failed');
       }
@@ -131,6 +144,7 @@ describe('Fix 2: JWT_SECRET Requirement', () => {
     });
 
     it('should allow login with valid password', async () => {
+      skipCleanup = true; // Keep server running for next test
       const response = await apiRequest('/api/auth/login', {
         method: 'POST',
         body: JSON.stringify({ password: '123456' })
@@ -144,6 +158,7 @@ describe('Fix 2: JWT_SECRET Requirement', () => {
     });
 
     it('should set auth_token cookie on successful login', async () => {
+      skipCleanup = true; // Keep server running for next test
       const response = await fetch(`http://localhost:${server.port}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -158,6 +173,7 @@ describe('Fix 2: JWT_SECRET Requirement', () => {
     });
 
     it('should reject invalid tokens', async () => {
+      skipCleanup = true; // Keep server running (will be cleaned by afterAll)
       // Note: This test verifies that middleware is configured correctly.
       // fetch-based tests don't trigger Next.js middleware in test environments.
       // Middleware functionality is verified via:
