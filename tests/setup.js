@@ -27,6 +27,31 @@ export function unregisterServer(serverInfo) {
 // Set test environment variables
 process.env.NODE_ENV = 'test';
 
+// Set required secrets for tests (some modules validate these at import time)
+if (!process.env.JWT_SECRET) {
+  process.env.JWT_SECRET = '9router-test-jwt-secret-minimum-32-characters-required';
+}
+if (!process.env.API_KEY_SECRET) {
+  process.env.API_KEY_SECRET = '9router-test-api-key-secret-minimum-32-characters';
+}
+if (!process.env.MACHINE_ID_SALT) {
+  process.env.MACHINE_ID_SALT = '9router-test-machine-id-salt-minimum-16-chars';
+}
+
+// Set OAuth secrets for tests
+if (!process.env.GEMINI_CLIENT_SECRET) {
+  process.env.GEMINI_CLIENT_SECRET = 'test-gemini-secret';
+}
+if (!process.env.IFLOW_CLIENT_SECRET) {
+  process.env.IFLOW_CLIENT_SECRET = 'test-iflow-secret';
+}
+if (!process.env.ANTIGRAVITY_CLIENT_SECRET) {
+  process.env.ANTIGRAVITY_CLIENT_SECRET = 'test-antigravity-secret';
+}
+if (!process.env.CODEX_CLIENT_SECRET) {
+  process.env.CODEX_CLIENT_SECRET = 'test-codex-secret';
+}
+
 // Global setup
 beforeAll(() => {
   console.log('🧪 Starting test suite...');

@@ -3,11 +3,19 @@
  * Branch: security/require-jwt-secret
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest';
 import { startServer, stopServer, apiRequest } from '../helpers/server.js';
 
 describe('Fix 2: JWT_SECRET Requirement', () => {
   let server;
+
+  // Cleanup after each test to ensure no servers are left running
+  afterEach(async () => {
+    if (server) {
+      await stopServer(server);
+      server = null;
+    }
+  });
 
   afterAll(async () => {
     await stopServer(server);
@@ -20,51 +28,75 @@ describe('Fix 2: JWT_SECRET Requirement', () => {
 
       // Server should fail to start without JWT_SECRET
       let serverStarted = false;
+      let caughtError = null;
+      let tempServer = null;
+
       try {
-        server = await startServer(env);
+        // Use Promise.race with a 10-second timeout since server should fail fast
+        tempServer = await Promise.race([
+          startServer(env),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Server did not fail fast enough')), 10000)
+          )
+        ]);
         serverStarted = true;
+        server = tempServer; // Only set if successful
       } catch (error) {
         // Expected - server should fail to start
+        caughtError = error;
+      } finally {
+        // Cleanup temp server if it exists but failed validation
+        if (tempServer && !serverStarted) {
+          await stopServer(tempServer);
+        }
       }
 
-      // If server somehow started, stop it
-      if (serverStarted && server) {
-        await stopServer(server);
-        server = null;
-      }
-
-      // Test passes - server should not start without JWT_SECRET
-      expect(true).toBe(true);
-    });
+      // Verify server did not start without JWT_SECRET
+      expect(serverStarted).toBe(false);
+      expect(caughtError).toBeTruthy(); // Should have caught an error
+    }, 20000); // 20-second timeout for this test
   });
 
   describe('With short JWT_SECRET', () => {
     it('should reject JWT_SECRET shorter than 32 characters', async () => {
+      // Ensure clean state
       await stopServer(server);
+      server = null;
+
+      // Small delay to ensure port is freed
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Server should fail to start with short JWT_SECRET
       // The validation happens at module load time, causing server to crash
-      // We'll try to start it and verify it doesn't successfully start
+      // We expect startServer to throw/reject within a few seconds
       let serverStarted = false;
+      let caughtError = null;
+      let tempServer = null;
+
       try {
-        server = await startServer({ JWT_SECRET: 'short' });
+        // Use Promise.race with a 10-second timeout since server should fail fast
+        tempServer = await Promise.race([
+          startServer({ JWT_SECRET: 'short' }),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Server did not fail fast enough')), 10000)
+          )
+        ]);
         serverStarted = true;
+        server = tempServer; // Only set if successful
       } catch (error) {
         // Expected - server should fail to start
-        // Error could be timeout or explicit failure
+        caughtError = error;
+      } finally {
+        // Cleanup temp server if it exists but failed validation
+        if (tempServer && !serverStarted) {
+          await stopServer(tempServer);
+        }
       }
 
-      // If server somehow started, try to stop it
-      if (serverStarted && server) {
-        await stopServer(server);
-        server = null;
-      }
-
-      // The key test is that the server won't start with short secret
-      // This is verified by the fact that startServer throws or times out
-      // For this test, we just need to ensure the security fix exists
-      expect(true).toBe(true); // Test passes if we got here
-    });
+      // The key test is that the server doesn't start with short secret
+      expect(serverStarted).toBe(false);
+      expect(caughtError).toBeTruthy(); // Should have caught an error
+    }, 20000); // 20-second timeout for this test
   });
 
   describe('With valid JWT_SECRET', () => {

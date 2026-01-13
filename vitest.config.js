@@ -9,6 +9,9 @@ export default defineConfig({
     // Global test timeout (increased for server startup)
     testTimeout: 60000,
 
+    // Hook timeout (for beforeAll/afterAll)
+    hookTimeout: 120000, // 2 minutes for server startup hooks
+
     // Exclude Playwright tests (*.spec.js) - they run separately with Playwright
     exclude: [
       '**/node_modules/**',

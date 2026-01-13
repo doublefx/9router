@@ -32,10 +32,33 @@ export async function startServer(env = {}) {
     // Listen for errors during startup
     const startupError = new Promise((_, reject) => {
       serverProcess.on('error', reject);
+
+      // Also reject if process exits with non-zero code (crash)
+      serverProcess.on('exit', (code, signal) => {
+        if (code !== 0 && code !== null) {
+          reject(new Error(`Server process exited with code ${code}`));
+        } else if (signal) {
+          reject(new Error(`Server process killed with signal ${signal}`));
+        }
+      });
     });
 
+    // Collect stderr to check for fatal errors
+    let stderrOutput = '';
     serverProcess.stderr.on('data', (data) => {
-      console.error('Server error:', data.toString());
+      const output = data.toString();
+      stderrOutput += output;
+      console.error('Server error:', output);
+
+      // Detect fatal errors early and reject immediately
+      if (output.includes('FATAL:') || output.includes('throw new Error')) {
+        // Give it a moment for process to exit, then reject
+        setTimeout(() => {
+          if (!serverProcess.killed) {
+            startupError.catch(() => {}); // Prevent unhandled rejection
+          }
+        }, 1000);
+      }
     });
 
     // Wait for server to be ready
@@ -66,13 +89,19 @@ export async function startServer(env = {}) {
  * Stop the server properly
  */
 export async function stopServer(serverInfo) {
-  if (!serverInfo || !serverInfo.process) {
+  if (!serverInfo) {
+    return;
+  }
+
+  if (!serverInfo.process) {
     return;
   }
 
   const { process: serverProcess, port } = serverInfo;
 
-  if (!serverProcess.pid) {
+  if (!serverProcess || !serverProcess.pid || serverProcess.killed) {
+    // Process already dead or never started
+    unregisterServer(serverInfo);
     return;
   }
 

@@ -24,8 +24,8 @@ function createMockRequest(url, cookies = {}) {
 }
 
 describe('Fix 2: JWT Middleware Direct Testing', () => {
-  // Use same default as middleware to ensure token verification works
-  const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || '9router-default-secret-change-me');
+  // JWT_SECRET is set in tests/setup.js
+  const SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
   it('should redirect to login when no token is present', async () => {
     const request = createMockRequest('http://localhost:3000/dashboard');
