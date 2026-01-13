@@ -104,7 +104,7 @@ describe('Fix 3: Remove Default Password', () => {
 
     it('should reject password change when no password configured', async () => {
       const response = await apiRequest('/api/settings', {
-        method: 'POST',
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           currentPassword: '123456',
