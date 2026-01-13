@@ -1,5 +1,10 @@
 {
   "enabledPlugins": {
     "playwright@claude-plugins-official": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev:*)"
+    ]
   }
 }
